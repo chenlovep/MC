@@ -1,0 +1,9 @@
+﻿  vtkMarchingCubesSpace.cxx
+e:\biye\my_mc\my_mc\my_mc\vtkmarchingcubesspace.cxx(183): warning C4101: “t”: 未引用的局部变量
+  e:\biye\my_mc\my_mc\my_mc\vtkmarchingcubesspace.cxx(951): note: 参见对正在编译的函数 模板 实例化“void vtkMarchingCubesSpaceComputeGradient<VTK_TT>(vtkMarchingCubesSpace *,T *,int [],double [],double [],vtkIncrementalPointLocator *,vtkDataArray *,vtkDataArray *,vtkDataArray *,vtkCellArray *,double *,int)”的引用
+          with
+          [
+              T=VTK_TT
+          ]
+  my_mc.vcxproj -> E:\biye\My_MC\my_mc\x64\Debug\my_mc.exe
+  my_mc.vcxproj -> E:\biye\My_MC\my_mc\x64\Debug\my_mc.pdb (Partial PDB)
