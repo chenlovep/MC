@@ -1,9 +1,4 @@
-﻿  vtkMarchingCubesSpace.cxx
-e:\biye\my_mc\my_mc\my_mc\vtkmarchingcubesspace.cxx(183): warning C4101: “t”: 未引用的局部变量
-  e:\biye\my_mc\my_mc\my_mc\vtkmarchingcubesspace.cxx(951): note: 参见对正在编译的函数 模板 实例化“void vtkMarchingCubesSpaceComputeGradient<VTK_TT>(vtkMarchingCubesSpace *,T *,int [],double [],double [],vtkIncrementalPointLocator *,vtkDataArray *,vtkDataArray *,vtkDataArray *,vtkCellArray *,double *,int)”的引用
-          with
-          [
-              T=VTK_TT
-          ]
+﻿  1.cpp
+vtkFiltersCore-7.0-gd.lib(vtkMarchingCubes.obj) : warning LNK4099: 未找到 PDB“vtkFiltersCore.pdb”(使用“vtkFiltersCore-7.0-gd.lib(vtkMarchingCubes.obj)”或在“E:\biye\My_MC\my_mc\x64\Debug\vtkFiltersCore.pdb”中寻找)；正在链接对象，如同没有调试信息一样
   my_mc.vcxproj -> E:\biye\My_MC\my_mc\x64\Debug\my_mc.exe
   my_mc.vcxproj -> E:\biye\My_MC\my_mc\x64\Debug\my_mc.pdb (Partial PDB)

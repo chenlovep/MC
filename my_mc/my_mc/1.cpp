@@ -14,6 +14,8 @@
 #include <vtkRenderer.h>
 #include <vtkStripper.h>
 #include <vtkJPEGReader.h>
+#include <vtkCamera.h>
+#include <vtkWindowedSincPolyDataFilter.h>
 #include <iostream>
 #include "vtkMarchingCubesSpace.h"
 #include "vtkAutoInit.h"
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]) {
 	ReaderBinary->SetFileNameSliceSpacing(1);
 	ReaderBinary->SetFilePattern("%s%02d.jpg");
 	ReaderBinary->SetDataExtent(0, 127, 0, 127, 1, 18);
-	ReaderBinary->SetDataSpacing(1, 1, 1);//设置三维数据场中像素间距
+	ReaderBinary->SetDataSpacing(1,1,1);//设置三维数据场中像素间距
 	ReaderBinary->Update();
 
 	BinaryVolume->DeepCopy(ReaderBinary->GetOutput());
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
 	
 
 	//调用系统立方体六面体
-	vtkSmartPointer<vtkMarchingCubesSpace> surface = vtkSmartPointer<vtkMarchingCubesSpace>::New();
+	vtkSmartPointer<vtkMarchingCubes> surface = vtkSmartPointer<vtkMarchingCubes>::New();
 #if VTK_MAJOR_VERSION <= 5
 	surface->SetInput(BinaryVolume);
 #else 
@@ -60,13 +62,20 @@ int main(int argc, char *argv[]) {
 	stripper->SetInputConnection(surface->GetOutputPort()); //将生成的三角片连接成三角带
 	stripper->Update();
 
-	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
-	smoothFilter->SetInputConnection(stripper->GetOutputPort());
-	smoothFilter->SetNumberOfIterations(5);//
-	smoothFilter->Update();
+	//vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+	//smoothFilter->SetInputConnection(stripper->GetOutputPort());
+	//smoothFilter->SetNumberOfIterations(200);//
+	//smoothFilter->Update();
+
+	//vtkSmartPointer<vtkWindowedSincPolyDataFilter> wndSincsmoothFilter = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+	//wndSincsmoothFilter->SetInputConnection(stripper->GetOutputPort());
+	//wndSincsmoothFilter->SetNumberOfIterations(3);
+	//wndSincsmoothFilter->Update();
 
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputConnection(smoothFilter->GetOutputPort());
+	mapper->SetInputConnection(stripper->GetOutputPort());
+	//mapper->SetInputConnection(wndSincsmoothFilter->GetOutputPort());
+	//mapper->SetInputConnection(smoothFilter->GetOutputPort());
 	mapper->ScalarVisibilityOff();//
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
@@ -78,8 +87,19 @@ int main(int argc, char *argv[]) {
 	actor->GetProperty()->SetSpecularPower(10);
 
 
+	vtkCamera *aCamera = vtkCamera::New();
+	aCamera->SetViewUp(0, 0, -1);
+	aCamera->SetPosition(0,1,0);
+	aCamera->SetFocalPoint(0,0,0);
+
+
+
 	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-	renderer->SetBackground(1, 1, 1);
+	//renderer->SetActiveCamera(aCamera);
+	renderer->ResetCamera();
+	aCamera->Dolly(1.5);
+	renderer->SetBackground(1,1,1);
+	renderer->ResetCameraClippingRange();
 
 	vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
 	renderWindow->AddRenderer(renderer);

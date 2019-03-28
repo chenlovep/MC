@@ -152,7 +152,7 @@ void vtkMarchingCubesSpaceComputePointGradient(int i, int j, int k, T *s, int di
 
 
 
-
+/*
 // Contouring filter specialized for volumes and "short int" data values.
 //
 template <class T>
@@ -314,7 +314,7 @@ void vtkMarchingCubesSpaceComputeGradient(vtkMarchingCubesSpace *self,T *scalars
 
           triCase = triCases+ index; //triCases是vtkMarchingCubesSpaceTriangleCases.cxx中“构型—三角剖分”查找表的头指针,
           edge = triCase->edges; //edges是vtkMarchingCubesSpaceTriangleCases结构体成员EDGE_LIST edges[16];edges[16]每个元素对应cube边的序号;edge即edges[16]中头指针
-
+		  //edge为triCase中的[16]确定三角面片的形状
           for ( ; edge[0] > -1; edge += 3 )  //每三个边就是一个triangle，所以edge+=3
             {
 			  count = count + 1;
@@ -324,6 +324,9 @@ void vtkMarchingCubesSpaceComputeGradient(vtkMarchingCubesSpace *self,T *scalars
               //t = (value - s[vert[0]]) / (s[vert[1]] - s[vert[0]]);
               x1 = pts[vert[0]];   //函数开始定义pts[8][3]
               x2 = pts[vert[1]];
+			  //x[0] = x1[0] + (x1[0] + ((value)-s[vert[0]])*(x2[0] - x1[0])) / (s[vert[1]] - s[vert[0]]);
+			  //x[1] = x1[1] + (x1[1] + ((value)-s[vert[0]])*(x2[1] - x1[1])) / (s[vert[1]] - s[vert[0]]);
+			  //x[2] = x1[2] + (x1[2] + ((value)-s[vert[0]])*(x2[2] - x1[2])) / (s[vert[1]] - s[vert[0]]);
 			  x[0] =0.5*(x1[0] + x2[0]);
               x[1] =0.5*(x1[1] + x2[1]);
               x[2] =0.5*(x1[2] + x2[2]);       //线性插值改为取中点
@@ -335,6 +338,10 @@ void vtkMarchingCubesSpaceComputeGradient(vtkMarchingCubesSpace *self,T *scalars
                     {
                     n1 = gradients[vert[0]];
                     n2 = gradients[vert[1]];
+					//等值面法向量计算
+					//n[0] = n1[0] + (n1[0] + ((value)-s[vert[0]])*(n2[0] - n1[0])) / (s[vert[1]] - s[vert[0]]);
+					//n[1] = n1[1] + (n1[1] + ((value)-s[vert[0]])*(n2[1] - n1[1])) / (s[vert[1]] - s[vert[0]]);
+					//n[2] = n1[2] + (n1[2] + ((value)-s[vert[0]])*(n2[2] - n1[2])) / (s[vert[1]] - s[vert[0]]);
                     n[0] = 0.5*(n1[0] + n2[0]);
                     n[1] = 0.5*(n1[1] + n2[1]);
                     n[2] = 0.5*(n1[2] + n2[2]);    //梯度计算改为取平均
@@ -355,6 +362,7 @@ void vtkMarchingCubesSpaceComputeGradient(vtkMarchingCubesSpace *self,T *scalars
                   }
 			}
             // check for degenerate triangle
+			// 简化三角面
             if ( ptIds[0] != ptIds[1] &&
                  ptIds[0] != ptIds[2] &&
                  ptIds[1] != ptIds[2] )
@@ -371,8 +379,8 @@ void vtkMarchingCubesSpaceComputeGradient(vtkMarchingCubesSpace *self,T *scalars
 	cout << "三角面片数量:" << count << endl;
 }
 
+*/
 
-/*
 //
 // MyvtkMarchingCubesSpaceComputeGradient
 //
@@ -405,7 +413,7 @@ void vtkMarchingCubesSpaceComputeGradient(vtkMarchingCubesSpace *self,T *scalars
 	int ComputeScalars = newScalars != NULL;
 	int NeedGradients;
 	int extent[6];
-	int M, N = 4, f_min = -10000;
+	int M, N =8, f_min = -10000;
 	int a,b,X,Y,Z;
 	int count=1;
 	double t, *x1, *x2, x[3], *n1, *n2, n[3], min, max;
@@ -519,7 +527,7 @@ void vtkMarchingCubesSpaceComputeGradient(vtkMarchingCubesSpace *self,T *scalars
 			}//for i
 		}//for j
 	}//for k
-
+	
 
 
 FindSeedPoint:
@@ -529,6 +537,7 @@ FindSeedPoint:
 	CubeQueue.push(Cube(i,j,k,index,flag));
 	//CubeQueue
 	while(!CubeQueue.empty()){
+		count = count + 1;
 		//从队列中取出队首元素
 		CubeTemp=CubeQueue.front();    
 		//CubeTemp.oi, CubeTemp.oj, CubeTemp.ok代表该立方体中0号体素的坐标信息
@@ -662,16 +671,24 @@ FindSeedPoint:
 					//x1,x2确定相交边的坐标
 					x1 = pts[vert[0]];   //函数开始定义pts[8][3]
 					x2 = pts[vert[1]];
+					/*
 					//线性插值法
-					//x[0] = x1[0] + (x1[0] + ((value)-s[vert[0]])*(x2[0] - x1[0])) / (s[vert[1]] - s[vert[0]]);
-					//x[1] = x1[1] + (x1[1] + ((value)-s[vert[0]])*(x2[1] - x1[1])) / (s[vert[1]] - s[vert[0]]);
-					//x[2] = x1[2] + (x1[2] + ((value)-s[vert[0]])*(x2[2] - x1[2])) / (s[vert[1]] - s[vert[0]]);
+					if ((s[vert[1]] - s[vert[0]]) == 0) {
+						x[0] = x1[0] + (x1[0] + ((value)-s[vert[0]])*(x2[0] - x1[0]));
+						x[1] = x1[1] + (x1[1] + ((value)-s[vert[0]])*(x2[1] - x1[1]));
+						x[2] = x1[2] + (x1[2] + ((value)-s[vert[0]])*(x2[2] - x1[2]));
+					}
+					else
+						x[0] = x1[0] + (x1[0] + ((value)-s[vert[0]])*(x2[0] - x1[0])) / (s[vert[1]] - s[vert[0]]);
+						x[1] = x1[1] + (x1[1] + ((value)-s[vert[0]])*(x2[1] - x1[1])) / (s[vert[1]] - s[vert[0]]);
+						x[2] = x1[2] + (x1[2] + ((value)-s[vert[0]])*(x2[2] - x1[2])) / (s[vert[1]] - s[vert[0]]);
+					*/
 					//中分法代替线性插值
 					x[0] =0.5*(x1[0] + x2[0]);
 					x[1] =0.5*(x1[1] + x2[1]);
 					x[2] =0.5*(x1[2] + x2[2]);//线性插值改为取中点(取每条边的中点代替线性插值)
 
-					
+					/*
 					//N分临近替代线性插值
 					for (int m = 0; m < pow(2,N)-1; m++) {
 						a = int((pow(2, N) - (m + 1))*s[vert[0]] / pow(2, N) + (m + 1)*s[vert[1]] / pow(2, N));
@@ -698,25 +715,33 @@ FindSeedPoint:
 					x[0] = (M + 1) / pow(2, N)*abs(x1[0] - x2[0]) + X;
 					x[1] = (M + 1) / pow(2, N)*abs(x1[1] - x2[1]) + Y;
 					x[2] = (M + 1) / pow(2, N)*abs(x1[2] - x2[2]) + Z;
-					
+					*/
 					// check for a new point
 					if ( locator->InsertUniquePoint(x, ptIds[ii]) )
 					{
 						if (NeedGradients)
 						{
+							
 							//确定新的点的梯度
 							n1 = gradients[vert[0]];
 							n2 = gradients[vert[1]];
-
-							n[0] = n1[0] + (n1[0] + ((value)-s[vert[0]])*(n2[0] - n1[0])) / (s[vert[1]] - s[vert[0]]);
-							n[1] = n1[1] + (n1[1] + ((value)-s[vert[0]])*(n2[1] - n1[1])) / (s[vert[1]] - s[vert[0]]);
-							n[2] = n1[2] + (n1[2] + ((value)-s[vert[0]])*(n2[2] - n1[2])) / (s[vert[1]] - s[vert[0]]);
-							//n[0] = 0.5*(n1[0] + n2[0]);
-							//n[1] = 0.5*(n1[1] + n2[1]);
-							//n[2] = 0.5*(n1[2] + n2[2]);    //梯度计算改为去平均
+							/*
+							if ((s[vert[1]] - s[vert[0]]) == 0) {
+								n[0] = n1[0] + (n1[0] + ((value)-s[vert[0]])*(n2[0] - n1[0]));
+								n[1] = n1[1] + (n1[1] + ((value)-s[vert[0]])*(n2[1] - n1[1]));
+								n[2] = n1[2] + (n1[2] + ((value)-s[vert[0]])*(n2[2] - n1[2]));
+							}
+							else
+								n[0] = n1[0] + (n1[0] + ((value)-s[vert[0]])*(n2[0] - n1[0])) / (s[vert[1]] - s[vert[0]]);
+								n[1] = n1[1] + (n1[1] + ((value)-s[vert[0]])*(n2[1] - n1[1])) / (s[vert[1]] - s[vert[0]]);
+								n[2] = n1[2] + (n1[2] + ((value)-s[vert[0]])*(n2[2] - n1[2])) / (s[vert[1]] - s[vert[0]]);
+							*/
+							n[0] = 0.5*(n1[0] + n2[0]);
+							n[1] = 0.5*(n1[1] + n2[1]);
+							n[2] = 0.5*(n1[2] + n2[2]);    //梯度计算改为去平均
 							
+							/*
 							//n分法确定梯度
-							
 							if (n1[0] <= n2[0])
 								X = n1[0];
 							else
@@ -732,7 +757,7 @@ FindSeedPoint:
 							n[0] = (M + 1) / pow(2, N)*abs(n1[0] - n2[1]) + X;
 							n[1] = (M + 1) / pow(2, N)*abs(n1[0] - n2[1]) + Y;
 							n[2] = (M + 1) / pow(2, N)*abs(n1[0] - n2[1]) + Z;
-							
+							*/
 						}
 						if (ComputeScalars)
 						{
@@ -762,7 +787,6 @@ FindSeedPoint:
 			if(i<(dims[0]-1)){        
 				//i+1,j,k
 				List[idx+1].oi=i+1;List[idx+1].oj=j;List[idx+1].ok=k;List[idx+1].index=index;
-				count = count + 1;
 				CubeQueue.push(List[idx+1]);
 			}
 		}
@@ -770,7 +794,6 @@ FindSeedPoint:
 			if(i>0){     
 				//i-1,j,k
 				List[idx-1].oi=i-1;List[idx-1].oj=j;List[idx-1].ok=k;List[idx-1].index=index;
-				count = count + 1;
 				CubeQueue.push(List[idx-1]);
 			}
 		}
@@ -778,7 +801,6 @@ FindSeedPoint:
 			if(j<(dims[1]-1)){ 
 				//i,j+1,k
 				List[idx + dims[0]].oi=i;List[idx + dims[0]].oj=j+1;List[idx + dims[0]].ok=k;List[idx + dims[0]].index=index;
-				count = count + 1;
 				CubeQueue.push(List[idx + dims[0]]);
 			}
 		}
@@ -786,7 +808,6 @@ FindSeedPoint:
 			if(j>0){     
 				//i,j-1,k
 				List[idx - dims[0]].oi=i;List[idx - dims[0]].oj=j-1;List[idx - dims[0]].ok=k;List[idx - dims[0]].index=index;
-				count = count + 1;
 				CubeQueue.push(List[idx - dims[0]]);
 			}
 		}
@@ -794,7 +815,6 @@ FindSeedPoint:
 			if(k<(dims[2]-2)){        // 注意k<dims[2]-1的话，正方体相对原点到顶层会超界
 				//i,j,k+1
 				List[idx + sliceSize].oi=i;List[idx + sliceSize].oj=j;List[idx + sliceSize].ok=k+1;List[idx + sliceSize].index=index;		
-				count = count + 1;
 				CubeQueue.push(List[idx + sliceSize]);
 			}
 		}
@@ -802,15 +822,12 @@ FindSeedPoint:
 			if(k>0){     
 				//i,j,k-1
 				List[idx - sliceSize].oi=i;List[idx - sliceSize].oj=j;List[idx - sliceSize].ok=k-1;List[idx - sliceSize].index=index;
-				count = count + 1;
 				CubeQueue.push(List[idx - sliceSize]);
 			}	 
 		}
 	}//exit the queue
 	cout << "三角面片的数量:" << count << endl;
 }
-
-*/
 
 
 
